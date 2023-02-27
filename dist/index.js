@@ -6782,6 +6782,7 @@ import { createRequire as __WEBPACK_EXTERNAL_createRequire } from 'module'
               let clonedResponse
               if (opts.cache && response.cachePolicy.storable()) {
                 clonedResponse = cloneResponse(response)
+
                 ;(async () => {
                   try {
                     const bodyPromise = getStream.buffer(response)
@@ -20699,37 +20700,6 @@ An error to be thrown when the request is aborted with `.cancel()`.
     } catch (err) {
       return err
     }
-  } // CONCATENATED MODULE: ./src/determineTargetState.js
-
-  function isReadyForDeploy(gh) {
-    return (
-      gh.payload.action === 'submitted' &&
-      gh.payload.review.state === 'approved' &&
-      gh.payload.sender.login === gh.gatekeeper
-    )
-  }
-
-  function isReadyForReview(gh) {
-    return (
-      gh.payload.action === 'review_requested' &&
-      gh.payload.requested_reviewer.login === gh.gatekeeper
-    )
-  }
-
-  /* harmony default export */ function determineTargetState(gh, sc) {
-    if (
-      gh?.context?.eventName === 'pull_request_review' &&
-      isReadyForDeploy(gh, sc)
-    ) {
-      return sc.readyStateId
-    } else if (
-      gh?.context?.eventName === 'pull_request' &&
-      isReadyForReview(gh)
-    ) {
-      return sc.reviewStateId
-    } else {
-      return null
-    }
   } // CONCATENATED MODULE: ./src/createTask.js
 
   const createTask_shortcutStoriesUrl =
@@ -20737,6 +20707,28 @@ An error to be thrown when the request is aborted with `.cancel()`.
   const createTask_shortcutToken = process.env.SHORTCUT_TOKEN
 
   /* harmony default export */ async function createTask(storyId, description) {
+    try {
+      const story = await got_dist_source
+        .get(`${createTask_shortcutStoriesUrl}/${storyId}`, {
+          headers: {
+            'Shortcut-Token': createTask_shortcutToken,
+            'Content-Type': 'application/json'
+          },
+          json: {
+            description
+          },
+          responseType: 'json'
+        })
+        .json()
+
+      const task = story.tasks.find((task) => task.description === description)
+      if (task) {
+        return
+      }
+    } catch (err) {
+      return err
+    }
+
     try {
       const response = await got_dist_source.put(
         `${createTask_shortcutStoriesUrl}/${storyId}/tasks`,
@@ -20763,7 +20755,11 @@ An error to be thrown when the request is aborted with `.cancel()`.
       core.setFailed('Context or pull request not found.')
     }
 
-    const storyId = getStoryId(context.payload.pull_request)
+    const shortcutStoryPrefix = core.getInput('shortcut_story_prefix')
+    const storyId = getStoryId(
+      context.payload.pull_request,
+      shortcutStoryPrefix
+    )
 
     if (!storyId || storyId === null) {
       core.info('No story ID found.')
@@ -20775,34 +20771,11 @@ An error to be thrown when the request is aborted with `.cancel()`.
       core.setFailed('Missing Shortcut API Token.')
       return
     }
-    const shortcutStoryPrefix = core.getInput('shortcut_story_prefix')
-    const shortcutTargetReviewStateId = core.getInput(
-      'shortcut_review_state_id'
-    )
-    const shortcutTargetReadyStateId = core.getInput('shortcut_ready_state_id')
-    const githubGatekeeper = core.getInput('github_gatekeeper')
+
+    const shortcutTargetStateId = core.getInput('shortcut_ready_state_id')
     const shortcutTaskDescription = core.getInput('shortcut_task_description')
 
-    const gh = {
-      gatekeeper: githubGatekeeper,
-      context: context,
-      payload: context.payload
-    }
-
-    const sc = {
-      storyId: parseInt(storyId),
-      token: shortcutToken,
-      prefix: shortcutStoryPrefix,
-      reviewStateId: parseInt(shortcutTargetReviewStateId),
-      readyStateId: parseInt(shortcutTargetReadyStateId)
-    }
-
-    const targetState = determineTargetState(gh, sc)
-    if (!targetState || targetState === null) {
-      return
-    }
-
-    const move = await moveState(storyId, targetState)
+    const move = await moveState(storyId, shortcutTargetStateId)
     if (!move || move.statusCode !== 200) {
       core.setFailed(move)
     }

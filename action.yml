@@ -7,18 +7,12 @@ inputs:
     description: Shortcut prefix (default "sc")
     required: true
     default: 'sc'
-  shortcut_review_state_id:
-    description: The workflow state where the story should be moved to
-    required: true
-  shortcut_ready_state_id:
+  shortcut_target_state_id:
     description: The workflow state where the story should be moved to
     required: true
   shortcut_task_description:
     description: Will add a task with this description
     required: false
-  github_gatekeeper:
-    description: GitHub username of the reviewer who manages the workflow state
-    required: true
 name: Shortcut Move Story
 runs:
   main: dist/index.js

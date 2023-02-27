@@ -2,7 +2,6 @@ import core from '@actions/core'
 import github from '@actions/github'
 import getStoryId from './getStoryId.js'
 import shortcutMoveStoryState from './moveState.js'
-import determineTargetState from './determineTargetState.js'
 import shortcutCreateTask from './createTask.js'
 
 async function run() {
@@ -11,7 +10,8 @@ async function run() {
     core.setFailed('Context or pull request not found.')
   }
 
-  const storyId = getStoryId(context.payload.pull_request)
+  const shortcutStoryPrefix = core.getInput('shortcut_story_prefix')
+  const storyId = getStoryId(context.payload.pull_request, shortcutStoryPrefix)
 
   if (!storyId || storyId === null) {
     core.info('No story ID found.')
@@ -23,32 +23,11 @@ async function run() {
     core.setFailed('Missing Shortcut API Token.')
     return
   }
-  const shortcutStoryPrefix = core.getInput('shortcut_story_prefix')
-  const shortcutTargetReviewStateId = core.getInput('shortcut_review_state_id')
-  const shortcutTargetReadyStateId = core.getInput('shortcut_ready_state_id')
-  const githubGatekeeper = core.getInput('github_gatekeeper')
+
+  const shortcutTargetStateId = core.getInput('shortcut_ready_state_id')
   const shortcutTaskDescription = core.getInput('shortcut_task_description')
 
-  const gh = {
-    gatekeeper: githubGatekeeper,
-    context: context,
-    payload: context.payload
-  }
-
-  const sc = {
-    storyId: parseInt(storyId),
-    token: shortcutToken,
-    prefix: shortcutStoryPrefix,
-    reviewStateId: parseInt(shortcutTargetReviewStateId),
-    readyStateId: parseInt(shortcutTargetReadyStateId)
-  }
-
-  const targetState = determineTargetState(gh, sc)
-  if (!targetState || targetState === null) {
-    return
-  }
-
-  const move = await shortcutMoveStoryState(storyId, targetState)
+  const move = await shortcutMoveStoryState(storyId, shortcutTargetStateId)
   if (!move || move.statusCode !== 200) {
     core.setFailed(move)
   }
