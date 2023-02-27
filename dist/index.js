@@ -20714,9 +20714,6 @@ An error to be thrown when the request is aborted with `.cancel()`.
             'Shortcut-Token': createTask_shortcutToken,
             'Content-Type': 'application/json'
           },
-          json: {
-            description
-          },
           responseType: 'json'
         })
         .json()

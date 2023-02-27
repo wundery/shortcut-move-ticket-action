@@ -11,9 +11,6 @@ export default async function (storyId, description) {
           'Shortcut-Token': shortcutToken,
           'Content-Type': 'application/json'
         },
-        json: {
-          description
-        },
         responseType: 'json'
       })
       .json()
