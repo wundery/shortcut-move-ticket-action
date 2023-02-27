@@ -20683,6 +20683,7 @@ An error to be thrown when the request is aborted with `.cancel()`.
 
   /* harmony default export */ async function moveState(storyId, targetState) {
     try {
+      console.log(`put ${storyId} to ${targetState}`)
       const response = await got_dist_source.put(
         `${shortcutStoriesUrl}/${storyId}`,
         {
@@ -20720,6 +20721,7 @@ An error to be thrown when the request is aborted with `.cancel()`.
 
       const task = story.tasks.find((task) => task.description === description)
       if (task) {
+        console.log(`Task already exists: ${task.id} - ${task.description}`)
         return
       }
     } catch (err) {
@@ -20727,7 +20729,8 @@ An error to be thrown when the request is aborted with `.cancel()`.
     }
 
     try {
-      const response = await got_dist_source.put(
+      console.log(`create task for ${storyId} - ${description}`)
+      const response = await got_dist_source.post(
         `${createTask_shortcutStoriesUrl}/${storyId}/tasks`,
         {
           headers: {
@@ -20769,7 +20772,7 @@ An error to be thrown when the request is aborted with `.cancel()`.
       return
     }
 
-    const shortcutTargetStateId = core.getInput('shortcut_ready_state_id')
+    const shortcutTargetStateId = core.getInput('shortcut_target_state_id')
     const shortcutTaskDescription = core.getInput('shortcut_task_description')
 
     const move = await moveState(storyId, shortcutTargetStateId)
