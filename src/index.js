@@ -24,7 +24,7 @@ async function run() {
     return
   }
 
-  const shortcutTargetStateId = core.getInput('shortcut_ready_state_id')
+  const shortcutTargetStateId = core.getInput('shortcut_target_state_id')
   const shortcutTaskDescription = core.getInput('shortcut_task_description')
 
   const move = await shortcutMoveStoryState(storyId, shortcutTargetStateId)
