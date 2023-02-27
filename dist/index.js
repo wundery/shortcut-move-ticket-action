@@ -6782,7 +6782,6 @@ import { createRequire as __WEBPACK_EXTERNAL_createRequire } from 'module'
               let clonedResponse
               if (opts.cache && response.cachePolicy.storable()) {
                 clonedResponse = cloneResponse(response)
-
                 ;(async () => {
                   try {
                     const bodyPromise = getStream.buffer(response)
@@ -20731,6 +20730,31 @@ An error to be thrown when the request is aborted with `.cancel()`.
     } else {
       return null
     }
+  } // CONCATENATED MODULE: ./src/createTask.js
+
+  const createTask_shortcutStoriesUrl =
+    'https://api.app.shortcut.com/api/v3/stories'
+  const createTask_shortcutToken = process.env.SHORTCUT_TOKEN
+
+  /* harmony default export */ async function createTask(storyId, description) {
+    try {
+      const response = await got_dist_source.put(
+        `${createTask_shortcutStoriesUrl}/${storyId}/tasks`,
+        {
+          headers: {
+            'Shortcut-Token': createTask_shortcutToken,
+            'Content-Type': 'application/json'
+          },
+          json: {
+            description
+          },
+          responseType: 'json'
+        }
+      )
+      return response
+    } catch (err) {
+      return err
+    }
   } // CONCATENATED MODULE: ./src/index.js
 
   async function run() {
@@ -20757,6 +20781,7 @@ An error to be thrown when the request is aborted with `.cancel()`.
     )
     const shortcutTargetReadyStateId = core.getInput('shortcut_ready_state_id')
     const githubGatekeeper = core.getInput('github_gatekeeper')
+    const shortcutTaskDescription = core.getInput('shortcut_task_description')
 
     const gh = {
       gatekeeper: githubGatekeeper,
@@ -20777,9 +20802,16 @@ An error to be thrown when the request is aborted with `.cancel()`.
       return
     }
 
-    const res = await moveState(storyId, targetState)
-    if (!res || res.statusCode !== 200) {
-      core.setFailed(res)
+    const move = await moveState(storyId, targetState)
+    if (!move || move.statusCode !== 200) {
+      core.setFailed(move)
+    }
+
+    if (shortcutTaskDescription) {
+      const task = await createTask(storyId, shortcutTaskDescription)
+      if (!task || task.statusCode !== 200) {
+        core.setFailed(task)
+      }
     }
   }
 

@@ -3,6 +3,7 @@ import github from '@actions/github'
 import getStoryId from './getStoryId.js'
 import shortcutMoveStoryState from './moveState.js'
 import determineTargetState from './determineTargetState.js'
+import shortcutCreateTask from './createTask.js'
 
 async function run() {
   const context = github.context
@@ -26,6 +27,7 @@ async function run() {
   const shortcutTargetReviewStateId = core.getInput('shortcut_review_state_id')
   const shortcutTargetReadyStateId = core.getInput('shortcut_ready_state_id')
   const githubGatekeeper = core.getInput('github_gatekeeper')
+  const shortcutTaskDescription = core.getInput('shortcut_task_description')
 
   const gh = {
     gatekeeper: githubGatekeeper,
@@ -46,9 +48,16 @@ async function run() {
     return
   }
 
-  const res = await shortcutMoveStoryState(storyId, targetState)
-  if (!res || res.statusCode !== 200) {
-    core.setFailed(res)
+  const move = await shortcutMoveStoryState(storyId, targetState)
+  if (!move || move.statusCode !== 200) {
+    core.setFailed(move)
+  }
+
+  if (shortcutTaskDescription) {
+    const task = await shortcutCreateTask(storyId, shortcutTaskDescription)
+    if (!task || task.statusCode !== 200) {
+      core.setFailed(task)
+    }
   }
 }
 
