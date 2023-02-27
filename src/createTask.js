@@ -17,6 +17,7 @@ export default async function (storyId, description) {
 
     const task = story.tasks.find((task) => task.description === description)
     if (task) {
+      console.log(`Task already exists: ${task.id} - ${task.description}`)
       return
     }
   } catch (err) {
@@ -24,7 +25,8 @@ export default async function (storyId, description) {
   }
 
   try {
-    const response = await got.put(`${shortcutStoriesUrl}/${storyId}/tasks`, {
+    console.log(`create task for ${storyId} - ${description}`)
+    const response = await got.post(`${shortcutStoriesUrl}/${storyId}/tasks`, {
       headers: {
         'Shortcut-Token': shortcutToken,
         'Content-Type': 'application/json'

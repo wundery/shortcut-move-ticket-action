@@ -5,6 +5,7 @@ const shortcutToken = process.env.SHORTCUT_TOKEN
 
 export default async function (storyId, targetState) {
   try {
+    console.log(`put ${storyId} to ${targetState}`)
     const response = await got.put(`${shortcutStoriesUrl}/${storyId}`, {
       headers: {
         'Shortcut-Token': shortcutToken,
