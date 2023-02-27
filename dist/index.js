@@ -20779,9 +20779,10 @@ An error to be thrown when the request is aborted with `.cancel()`.
     }
 
     if (shortcutTaskDescription) {
-      const task = await createTask(storyId, shortcutTaskDescription)
-      if (!task || task.statusCode !== 200) {
-        core.setFailed(task)
+      try {
+        await createTask(storyId, shortcutTaskDescription)
+      } catch (error) {
+        core.setFailed(error)
       }
     }
   }

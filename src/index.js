@@ -33,9 +33,10 @@ async function run() {
   }
 
   if (shortcutTaskDescription) {
-    const task = await shortcutCreateTask(storyId, shortcutTaskDescription)
-    if (!task || task.statusCode !== 200) {
-      core.setFailed(task)
+    try {
+      await shortcutCreateTask(storyId, shortcutTaskDescription)
+    } catch (error) {
+      core.setFailed(error)
     }
   }
 }
