@@ -20722,7 +20722,7 @@ An error to be thrown when the request is aborted with `.cancel()`.
       const task = story.tasks.find((task) => task.description === description)
       if (task) {
         console.log(`Task already exists: ${task.id} - ${task.description}`)
-        return
+        return task
       }
     } catch (err) {
       return err
@@ -20730,9 +20730,8 @@ An error to be thrown when the request is aborted with `.cancel()`.
 
     try {
       console.log(`create task for ${storyId} - ${description}`)
-      const response = await got_dist_source.post(
-        `${createTask_shortcutStoriesUrl}/${storyId}/tasks`,
-        {
+      return await got_dist_source
+        .post(`${createTask_shortcutStoriesUrl}/${storyId}/tasks`, {
           headers: {
             'Shortcut-Token': createTask_shortcutToken,
             'Content-Type': 'application/json'
@@ -20741,9 +20740,8 @@ An error to be thrown when the request is aborted with `.cancel()`.
             description
           },
           responseType: 'json'
-        }
-      )
-      return response
+        })
+        .json()
     } catch (err) {
       return err
     }
